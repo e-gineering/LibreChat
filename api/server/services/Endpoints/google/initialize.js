@@ -7,6 +7,7 @@ const { GoogleClient } = require('~/app');
 const initializeClient = async ({ req, res, endpointOption, overrideModel, optionsOnly }) => {
   const {
     GOOGLE_KEY,
+    GOOGLE_KEY_JSON_FILENAME,
     GOOGLE_REVERSE_PROXY,
     GOOGLE_AUTH_HEADER,
     PROXY,
@@ -20,9 +21,10 @@ const initializeClient = async ({ req, res, endpointOption, overrideModel, optio
     userKey = await getUserKey({ userId: req.user.id, name: EModelEndpoint.google });
   }
 
+  const googleKeyJsonFilename = GOOGLE_KEY_JSON_FILENAME ?? '~/data/auth.json';
   let serviceKey = {};
   try {
-    serviceKey = require('~/data/auth.json');
+    serviceKey = require(googleKeyJsonFilename);
   } catch (e) {
     // Do nothing
   }
