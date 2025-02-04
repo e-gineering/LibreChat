@@ -8,9 +8,11 @@ import { EndpointSettings, SaveAsPresetDialog, AlternativeSettings } from '~/com
 import { PluginStoreDialog, TooltipAnchor } from '~/components';
 import { ModelSelect } from '~/components/Input/ModelSelect';
 import { useSetIndexOptions, useLocalize } from '~/hooks';
+import { useGetEndpointsQuery } from '~/data-provider';
 import OptionsPopover from './OptionsPopover';
 import PopoverButtons from './PopoverButtons';
 import { useChatContext } from '~/Providers';
+import { getEndpointField } from '~/utils';
 import store from '~/store';
 
 export default function HeaderOptions({
@@ -18,32 +20,22 @@ export default function HeaderOptions({
 }: {
   interfaceConfig?: Partial<TInterfaceConfig>;
 }) {
+  const { data: endpointsConfig } = useGetEndpointsQuery();
   const [saveAsDialogShow, setSaveAsDialogShow] = useState<boolean>(false);
   const [showPluginStoreDialog, setShowPluginStoreDialog] = useRecoilState(
     store.showPluginStoreDialog,
   );
   const localize = useLocalize();
 
-  const { showPopover, conversation, latestMessage, setShowPopover, setShowBingToneSetting } =
-    useChatContext();
+  const { showPopover, conversation, setShowPopover } = useChatContext();
   const { setOption } = useSetIndexOptions();
-
-  const { endpoint, endpointType, conversationId, jailbreak = false } = conversation ?? {};
-
-  const altConditions: { [key: string]: boolean } = {
-    bingAI: !!(latestMessage && jailbreak && endpoint === 'bingAI'),
-  };
-
-  const altSettings: { [key: string]: () => void } = {
-    bingAI: () => setShowBingToneSetting((prev) => !prev),
-  };
+  const { endpoint, conversationId } = conversation ?? {};
 
   const noSettings = useMemo<{ [key: string]: boolean }>(
     () => ({
       [EModelEndpoint.chatGPTBrowser]: true,
-      [EModelEndpoint.bingAI]: jailbreak ? false : conversationId !== 'new',
     }),
-    [jailbreak, conversationId],
+    [conversationId],
   );
 
   useEffect(() => {
@@ -61,11 +53,11 @@ export default function HeaderOptions({
     return null;
   }
 
-  const triggerAdvancedMode = altConditions[endpoint]
-    ? altSettings[endpoint]
-    : () => setShowPopover((prev) => !prev);
+  const triggerAdvancedMode = () => setShowPopover((prev) => !prev);
 
+  const endpointType = getEndpointField(endpointsConfig, endpoint, 'type');
   const paramEndpoint = isParamEndpoint(endpoint, endpointType);
+
   return (
     <Root
       open={showPopover}

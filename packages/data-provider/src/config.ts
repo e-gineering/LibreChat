@@ -4,7 +4,7 @@ import type { ZodError } from 'zod';
 import type { TModelsConfig } from './types';
 import { EModelEndpoint, eModelEndpointSchema } from './schemas';
 import { fileConfigSchema } from './file-config';
-import { specsConfigSchema } from './models';
+import { specsConfigSchema, TSpecsConfig } from './models';
 import { FileSources } from './types/files';
 import { MCPServersSchema } from './mcp';
 
@@ -427,6 +427,85 @@ export enum EImageOutputType {
   JPEG = 'jpeg',
 }
 
+const termsOfServiceSchema = z.object({
+  externalUrl: z.string().optional(),
+  openNewTab: z.boolean().optional(),
+  modalAcceptance: z.boolean().optional(),
+  modalTitle: z.string().optional(),
+  modalContent: z.string().or(z.array(z.string())).optional(),
+});
+
+export type TTermsOfService = z.infer<typeof termsOfServiceSchema>;
+
+export const intefaceSchema = z
+  .object({
+    privacyPolicy: z
+      .object({
+        externalUrl: z.string().optional(),
+        openNewTab: z.boolean().optional(),
+      })
+      .optional(),
+    termsOfService: termsOfServiceSchema.optional(),
+    endpointsMenu: z.boolean().optional(),
+    modelSelect: z.boolean().optional(),
+    parameters: z.boolean().optional(),
+    sidePanel: z.boolean().optional(),
+    multiConvo: z.boolean().optional(),
+    bookmarks: z.boolean().optional(),
+    presets: z.boolean().optional(),
+    prompts: z.boolean().optional(),
+    agents: z.boolean().optional(),
+  })
+  .default({
+    endpointsMenu: true,
+    modelSelect: true,
+    parameters: true,
+    sidePanel: true,
+    presets: true,
+    multiConvo: true,
+    bookmarks: true,
+    prompts: true,
+    agents: true,
+  });
+
+export type TInterfaceConfig = z.infer<typeof intefaceSchema>;
+
+export type TStartupConfig = {
+  appTitle: string;
+  socialLogins?: string[];
+  interface?: TInterfaceConfig;
+  discordLoginEnabled: boolean;
+  facebookLoginEnabled: boolean;
+  githubLoginEnabled: boolean;
+  googleLoginEnabled: boolean;
+  openidLoginEnabled: boolean;
+  appleLoginEnabled: boolean;
+  openidLabel: string;
+  openidImageUrl: string;
+  /** LDAP Auth Configuration */
+  ldap?: {
+    /** LDAP enabled */
+    enabled: boolean;
+    /** Whether LDAP uses username vs. email */
+    username?: boolean;
+  };
+  serverDomain: string;
+  emailLoginEnabled: boolean;
+  registrationEnabled: boolean;
+  socialLoginEnabled: boolean;
+  passwordResetEnabled: boolean;
+  emailEnabled: boolean;
+  checkBalance: boolean;
+  showBirthdayIcon: boolean;
+  helpAndFaqURL: string;
+  customFooter?: string;
+  modelSpecs?: TSpecsConfig;
+  sharedLinksEnabled: boolean;
+  publicSharedLinksEnabled: boolean;
+  analyticsGtmId?: string;
+  instanceProjectId: string;
+};
+
 export const configSchema = z.object({
   version: z.string(),
   cache: z.boolean().default(true),
@@ -435,44 +514,7 @@ export const configSchema = z.object({
   includedTools: z.array(z.string()).optional(),
   filteredTools: z.array(z.string()).optional(),
   mcpServers: MCPServersSchema.optional(),
-  interface: z
-    .object({
-      privacyPolicy: z
-        .object({
-          externalUrl: z.string().optional(),
-          openNewTab: z.boolean().optional(),
-        })
-        .optional(),
-      termsOfService: z
-        .object({
-          externalUrl: z.string().optional(),
-          openNewTab: z.boolean().optional(),
-          modalAcceptance: z.boolean().optional(),
-          modalTitle: z.string().optional(),
-          modalContent: z.string().or(z.array(z.string())).optional(),
-        })
-        .optional(),
-      endpointsMenu: z.boolean().optional(),
-      modelSelect: z.boolean().optional(),
-      parameters: z.boolean().optional(),
-      sidePanel: z.boolean().optional(),
-      multiConvo: z.boolean().optional(),
-      bookmarks: z.boolean().optional(),
-      presets: z.boolean().optional(),
-      prompts: z.boolean().optional(),
-      agents: z.boolean().optional(),
-    })
-    .default({
-      endpointsMenu: true,
-      modelSelect: true,
-      parameters: true,
-      sidePanel: true,
-      presets: true,
-      multiConvo: true,
-      bookmarks: true,
-      prompts: true,
-      agents: true,
-    }),
+  interface: intefaceSchema,
   fileStrategy: fileSourceSchema.default(FileSources.local),
   actions: z
     .object({
@@ -555,7 +597,6 @@ export const defaultEndpoints: EModelEndpoint[] = [
   EModelEndpoint.azureAssistants,
   EModelEndpoint.azureOpenAI,
   EModelEndpoint.agents,
-  EModelEndpoint.bingAI,
   EModelEndpoint.chatGPTBrowser,
   EModelEndpoint.gptPlugins,
   EModelEndpoint.google,
@@ -570,7 +611,6 @@ export const alternateName = {
   [EModelEndpoint.agents]: 'Agents',
   [EModelEndpoint.azureAssistants]: 'Azure Assistants',
   [EModelEndpoint.azureOpenAI]: 'Azure OpenAI',
-  [EModelEndpoint.bingAI]: 'Bing',
   [EModelEndpoint.chatGPTBrowser]: 'ChatGPT',
   [EModelEndpoint.gptPlugins]: 'Plugins',
   [EModelEndpoint.google]: 'Google',
@@ -694,7 +734,6 @@ export const initialModelsConfig: TModelsConfig = {
   [EModelEndpoint.agents]: openAIModels, // TODO: Add agent models (agentsModels)
   [EModelEndpoint.gptPlugins]: openAIModels,
   [EModelEndpoint.azureOpenAI]: openAIModels,
-  [EModelEndpoint.bingAI]: ['BingAI', 'Sydney'],
   [EModelEndpoint.chatGPTBrowser]: ['text-davinci-002-render-sha'],
   [EModelEndpoint.google]: defaultModels[EModelEndpoint.google],
   [EModelEndpoint.anthropic]: defaultModels[EModelEndpoint.anthropic],
@@ -703,7 +742,6 @@ export const initialModelsConfig: TModelsConfig = {
 
 export const EndpointURLs: { [key in EModelEndpoint]: string } = {
   [EModelEndpoint.openAI]: `/api/ask/${EModelEndpoint.openAI}`,
-  [EModelEndpoint.bingAI]: `/api/ask/${EModelEndpoint.bingAI}`,
   [EModelEndpoint.google]: `/api/ask/${EModelEndpoint.google}`,
   [EModelEndpoint.custom]: `/api/ask/${EModelEndpoint.custom}`,
   [EModelEndpoint.anthropic]: `/api/ask/${EModelEndpoint.anthropic}`,
@@ -740,9 +778,9 @@ export const supportsBalanceCheck = {
 };
 
 export const visionModels = [
-  'o1',
   'gpt-4o',
   'gpt-4o-mini',
+  'o1',
   'gpt-4-turbo',
   'gpt-4-vision',
   'llava',
@@ -1122,8 +1160,6 @@ export enum LocalStorageKeys {
   APP_TITLE = 'appTitle',
   /** Key for the last conversation setup. */
   LAST_CONVO_SETUP = 'lastConversationSetup',
-  /** Key for the last BingAI Settings */
-  LAST_BING = 'lastBingSettings',
   /** Key for the last selected model. */
   LAST_MODEL = 'lastSelectedModel',
   /** Key for the last selected tools. */
@@ -1199,6 +1235,6 @@ export enum SystemCategories {
 export const providerEndpointMap = {
   [EModelEndpoint.openAI]: EModelEndpoint.openAI,
   [EModelEndpoint.bedrock]: EModelEndpoint.bedrock,
-  [EModelEndpoint.azureOpenAI]: EModelEndpoint.openAI,
   [EModelEndpoint.anthropic]: EModelEndpoint.anthropic,
+  [EModelEndpoint.azureOpenAI]: EModelEndpoint.azureOpenAI,
 };
