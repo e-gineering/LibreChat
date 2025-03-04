@@ -5,6 +5,7 @@ const { isEnabled } = require('~/server/utils');
 const { GoogleClient } = require('~/app');
 
 const initializeClient = async ({ req, res, endpointOption, overrideModel, optionsOnly }) => {
+<<<<<<< HEAD
   const {
     GOOGLE_KEY,
     GOOGLE_KEY_JSON_FILENAME,
@@ -12,6 +13,9 @@ const initializeClient = async ({ req, res, endpointOption, overrideModel, optio
     GOOGLE_AUTH_HEADER,
     PROXY,
   } = process.env;
+=======
+  const { GOOGLE_KEY, GOOGLE_REVERSE_PROXY, GOOGLE_AUTH_HEADER, PROXY } = process.env;
+>>>>>>> ceb0da87 (🧠 feat: Bedrock Anthropic Reasoning & Update Endpoint Handling (#6163))
   const isUserProvided = GOOGLE_KEY === 'user_provided';
   const { key: expiresAt } = req.body;
 
@@ -45,6 +49,7 @@ const initializeClient = async ({ req, res, endpointOption, overrideModel, optio
 
   if (googleConfig) {
     clientOptions.streamRate = googleConfig.streamRate;
+    clientOptions.titleModel = googleConfig.titleModel;
   }
 
   if (allConfig) {
