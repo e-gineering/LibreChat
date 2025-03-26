@@ -82,6 +82,8 @@ router.get('/', async function (req, res) {
       analyticsGtmId: process.env.ANALYTICS_GTM_ID,
       instanceProjectId: instanceProject._id.toString(),
       bundlerURL: process.env.SANDPACK_BUNDLER_URL,
+      customFavicon: process.env.CUSTOM_FAVICON_PATH || '/assets/favicon-16x16.png',
+      customLogo: process.env.CUSTOM_LOGO_PATH || '/assets/logo.png',
     };
 
     if (ldap) {
