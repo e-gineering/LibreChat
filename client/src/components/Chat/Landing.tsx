@@ -97,15 +97,9 @@ export default function Landing({ Header }: { Header?: ReactNode }) {
       <div className="absolute left-0 right-0">{Header != null ? Header : null}</div>
       <div className="flex h-full flex-col items-center justify-center">
         <div className={cn('relative h-12 w-12', name && avatar ? 'mb-0' : 'mb-3')}>
-          <ConvoIcon
-            agentsMap={agentsMap}
-            assistantMap={assistantMap}
-            conversation={conversation}
-            endpointsConfig={endpointsConfig}
-            containerClassName={containerClassName}
-            context="landing"
-            className="h-2/3 w-2/3"
-            size={41}
+          <img
+            src={startupConfig?.customLogo || '/assets/logo.svg'}
+            alt="logo"
           />
           {startupConfig?.showBirthdayIcon === true ? (
             <TooltipAnchor
