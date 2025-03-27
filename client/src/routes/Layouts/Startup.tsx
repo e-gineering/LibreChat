@@ -7,7 +7,7 @@ import AuthLayout from '~/components/Auth/AuthLayout';
 import { REDIRECT_PARAM, SESSION_KEY } from '~/utils';
 
 const headerMap: Record<string, TranslationKeys> = {
-  '/login': 'Welcome to Edge' as TranslationKeys,
+  '/login': 'com_auth_welcome_back',
   '/register': 'com_auth_create_account',
   '/forgot-password': 'com_auth_reset_password',
   '/reset-password': 'com_auth_reset_password',
