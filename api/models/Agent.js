@@ -9,7 +9,7 @@ const {
   removeAgentFromAllProjects,
 } = require('./Project');
 const getLogStores = require('~/cache/getLogStores');
-const agentSchema = require('./schema/agent');
+const { agentSchema } = require('@librechat/data-schemas');
 
 const Agent = mongoose.model('agent', agentSchema);
 
@@ -45,6 +45,10 @@ const loadAgent = async ({ req, agent_id }) => {
   const agent = await getAgent({
     id: agent_id,
   });
+
+  if (!agent) {
+    return null;
+  }
 
   if (agent.author.toString() === req.user.id) {
     return agent;
