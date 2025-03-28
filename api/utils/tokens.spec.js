@@ -103,6 +103,16 @@ describe('getModelMaxTokens', () => {
     );
   });
 
+  test('should return correct tokens for gpt-4.5 matches', () => {
+    expect(getModelMaxTokens('gpt-4.5')).toBe(maxTokensMap[EModelEndpoint.openAI]['gpt-4.5']);
+    expect(getModelMaxTokens('gpt-4.5-preview')).toBe(
+      maxTokensMap[EModelEndpoint.openAI]['gpt-4.5'],
+    );
+    expect(getModelMaxTokens('openai/gpt-4.5-preview')).toBe(
+      maxTokensMap[EModelEndpoint.openAI]['gpt-4.5'],
+    );
+  });
+
   test('should return correct tokens for Anthropic models', () => {
     const models = [
       'claude-2.1',
@@ -412,6 +422,9 @@ describe('Meta Models Tests', () => {
       );
       expect(getModelMaxTokens('deepseek-reasoner')).toBe(
         maxTokensMap[EModelEndpoint.openAI]['deepseek-reasoner'],
+      );
+      expect(getModelMaxTokens('deepseek.r1')).toBe(
+        maxTokensMap[EModelEndpoint.openAI]['deepseek.r1'],
       );
     });
   });

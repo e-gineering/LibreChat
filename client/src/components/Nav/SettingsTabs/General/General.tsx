@@ -58,6 +58,8 @@ export const LangSelector = ({
     { value: 'es-ES', label: localize('com_nav_lang_spanish') },
     { value: 'et-EE', label: localize('com_nav_lang_estonian') },
     { value: 'fr-FR', label: localize('com_nav_lang_french') },
+    { value: 'he-HE', label: localize('com_nav_lang_hebrew') },
+    { value: 'hu-HU', label: localize('com_nav_lang_hungarian') },
     { value: 'it-IT', label: localize('com_nav_lang_italian') },
     { value: 'pl-PL', label: localize('com_nav_lang_polish') },
     { value: 'pt-BR', label: localize('com_nav_lang_brazilian_portuguese') },
@@ -68,10 +70,10 @@ export const LangSelector = ({
     { value: 'sv-SE', label: localize('com_nav_lang_swedish') },
     { value: 'ko-KR', label: localize('com_nav_lang_korean') },
     { value: 'vi-VN', label: localize('com_nav_lang_vietnamese') },
+    { value: 'th-TH', label: localize('com_nav_lang_thai') },
     { value: 'tr-TR', label: localize('com_nav_lang_turkish') },
     { value: 'nl-NL', label: localize('com_nav_lang_dutch') },
     { value: 'id-ID', label: localize('com_nav_lang_indonesia') },
-    { value: 'he-HE', label: localize('com_nav_lang_hebrew') },
     { value: 'fi-FI', label: localize('com_nav_lang_finnish') },
   ];
 

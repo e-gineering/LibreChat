@@ -2,13 +2,13 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const {
   Constants,
+  ErrorTypes,
   EModelEndpoint,
   anthropicSettings,
   getResponseSender,
   validateVisionModel,
 } = require('librechat-data-provider');
-const { SplitStreamHandler, GraphEvents } = require('@librechat/agents');
-const { encodeAndFormat } = require('~/server/services/Files/images/encode');
+const { SplitStreamHandler: _Handler, GraphEvents } = require('@librechat/agents');
 const {
   truncateText,
   formatMessage,
@@ -24,6 +24,7 @@ const {
 } = require('~/server/services/Endpoints/anthropic/helpers');
 const { getModelMaxTokens, getModelMaxOutputTokens, matchModelName } = require('~/utils');
 const { spendTokens, spendStructuredTokens } = require('~/models/spendTokens');
+const { encodeAndFormat } = require('~/server/services/Files/images/encode');
 const Tokenizer = require('~/server/services/Tokenizer');
 const { logger, sendEvent } = require('~/config');
 const { sleep } = require('~/server/utils');
@@ -31,6 +32,15 @@ const BaseClient = require('./BaseClient');
 
 const HUMAN_PROMPT = '\n\nHuman:';
 const AI_PROMPT = '\n\nAssistant:';
+
+class SplitStreamHandler extends _Handler {
+  getDeltaContent(chunk) {
+    return (chunk?.delta?.text ?? chunk?.completion) || '';
+  }
+  getReasoningDelta(chunk) {
+    return chunk?.delta?.thinking || '';
+  }
+}
 
 /** Helper function to introduce a delay before retrying */
 function delayBeforeRetry(attempts, baseDelay = 1000) {
@@ -105,7 +115,9 @@ class AnthropicClient extends BaseClient {
 
     const modelMatch = matchModelName(this.modelOptions.model, EModelEndpoint.anthropic);
     this.isClaude3 = modelMatch.includes('claude-3');
-    this.isLegacyOutput = !modelMatch.includes('claude-3-5-sonnet');
+    this.isLegacyOutput = !(
+      /claude-3[-.]5-sonnet/.test(modelMatch) || /claude-3[-.]7/.test(modelMatch)
+    );
     this.supportsCacheControl = this.options.promptCache && checkPromptCacheSupport(modelMatch);
 
     if (
@@ -136,12 +148,17 @@ class AnthropicClient extends BaseClient {
     this.maxPromptTokens =
       this.options.maxPromptTokens || this.maxContextTokens - this.maxResponseTokens;
 
-    if (this.maxPromptTokens + this.maxResponseTokens > this.maxContextTokens) {
-      throw new Error(
-        `maxPromptTokens + maxOutputTokens (${this.maxPromptTokens} + ${this.maxResponseTokens} = ${
-          this.maxPromptTokens + this.maxResponseTokens
-        }) must be less than or equal to maxContextTokens (${this.maxContextTokens})`,
-      );
+    const reservedTokens = this.maxPromptTokens + this.maxResponseTokens;
+    if (reservedTokens > this.maxContextTokens) {
+      const info = `Total Possible Tokens + Max Output Tokens must be less than or equal to Max Context Tokens: ${this.maxPromptTokens} (total possible output) + ${this.maxResponseTokens} (max output) = ${reservedTokens}/${this.maxContextTokens} (max context)`;
+      const errorMessage = `{ "type": "${ErrorTypes.INPUT_LENGTH}", "info": "${info}" }`;
+      logger.warn(info);
+      throw new Error(errorMessage);
+    } else if (this.maxResponseTokens === this.maxContextTokens) {
+      const info = `Max Output Tokens must be less than Max Context Tokens: ${this.maxResponseTokens} (max output) = ${this.maxContextTokens} (max context)`;
+      const errorMessage = `{ "type": "${ErrorTypes.INPUT_LENGTH}", "info": "${info}" }`;
+      logger.warn(info);
+      throw new Error(errorMessage);
     }
 
     this.sender =
@@ -678,6 +695,16 @@ class AnthropicClient extends BaseClient {
     return (msg) => {
       if (msg.text != null && msg.text && msg.text.startsWith(':::thinking')) {
         msg.text = msg.text.replace(/:::thinking.*?:::/gs, '').trim();
+      } else if (msg.content != null) {
+        /** @type {import('@librechat/agents').MessageContentComplex} */
+        const newContent = [];
+        for (let part of msg.content) {
+          if (part.think != null) {
+            continue;
+          }
+          newContent.push(part);
+        }
+        msg.content = newContent;
       }
 
       return msg;
@@ -733,8 +760,6 @@ class AnthropicClient extends BaseClient {
       stop_sequences,
       temperature,
       metadata,
-      top_p,
-      top_k,
     };
 
     if (this.useMessages) {
@@ -750,6 +775,14 @@ class AnthropicClient extends BaseClient {
       thinking: this.options.thinking,
       thinkingBudget: this.options.thinkingBudget,
     });
+
+    if (!/claude-3[-.]7/.test(model)) {
+      requestOptions.top_p = top_p;
+      requestOptions.top_k = top_k;
+    } else if (requestOptions.thinking == null) {
+      requestOptions.topP = top_p;
+      requestOptions.topK = top_k;
+    }
 
     if (this.systemMessage && this.supportsCacheControl === true) {
       requestOptions.system = [
@@ -798,50 +831,16 @@ class AnthropicClient extends BaseClient {
             }
           });
 
-          /** @param {string} chunk */
-          const handleChunk = (chunk) => {
-            this.streamHandler.handle({
-              choices: [
-                {
-                  delta: {
-                    content: chunk,
-                  },
-                },
-              ],
-            });
-          };
-          /** @param {string} chunk */
-          const handleReasoningChunk = (chunk) => {
-            this.streamHandler.handle({
-              choices: [
-                {
-                  delta: {
-                    reasoning_content: chunk,
-                  },
-                },
-              ],
-            });
-          };
-
           for await (const completion of response) {
-            // Handle each completion as before
             const type = completion?.type ?? '';
             if (tokenEventTypes.has(type)) {
               logger.debug(`[AnthropicClient] ${type}`, completion);
               this[type] = completion;
             }
-            if (completion?.delta?.thinking) {
-              handleReasoningChunk(completion.delta.thinking);
-            } else if (completion?.delta?.text) {
-              handleChunk(completion.delta.text);
-            } else if (completion.completion) {
-              handleChunk(completion.completion);
-            }
-
+            this.streamHandler.handle(completion);
             await sleep(streamRate);
           }
 
-          // Successful processing, exit loop
           break;
         } catch (error) {
           attempts += 1;

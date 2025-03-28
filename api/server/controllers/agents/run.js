@@ -43,14 +43,19 @@ async function createRun({
     agent.model_parameters,
   );
 
+  /** Resolves Mistral type strictness due to new OpenAI usage field */
+  if (agent.endpoint?.toLowerCase().includes(KnownEndpoints.mistral)) {
+    llmConfig.streamUsage = false;
+    llmConfig.usage = true;
+  }
+
   /** @type {'reasoning_content' | 'reasoning'} */
   let reasoningKey;
-  if (llmConfig.configuration?.baseURL?.includes(KnownEndpoints.openrouter)) {
+  if (
+    llmConfig.configuration?.baseURL?.includes(KnownEndpoints.openrouter) ||
+    (agent.endpoint && agent.endpoint.toLowerCase().includes(KnownEndpoints.openrouter))
+  ) {
     reasoningKey = 'reasoning';
-  }
-  if (/o1(?!-(?:mini|preview)).*$/.test(llmConfig.model)) {
-    llmConfig.streaming = false;
-    llmConfig.disableStreaming = true;
   }
 
   /** @type {StandardGraphConfig} */
@@ -65,7 +70,7 @@ async function createRun({
   };
 
   // TEMPORARY FOR TESTING
-  if (agent.provider === Providers.ANTHROPIC) {
+  if (agent.provider === Providers.ANTHROPIC || agent.provider === Providers.BEDROCK) {
     graphConfig.streamBuffer = 2000;
   }
 
