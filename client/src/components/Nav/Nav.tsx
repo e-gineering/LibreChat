@@ -23,7 +23,7 @@ import {
   useLocalStorage,
   useNavScrolling,
 } from '~/hooks';
-import { useConversationsInfiniteQuery, useTitleGeneration } from '~/data-provider';
+import { useConversationsInfiniteQuery, useTitleGeneration, useGetStartupConfig } from '~/data-provider';
 import { Conversations } from '~/components/Conversations';
 import SearchBar from './SearchBar';
 import NewChat from './NewChat';
@@ -74,6 +74,7 @@ const Nav = memo(
     navVisible: boolean;
     setNavVisible: React.Dispatch<React.SetStateAction<boolean>>;
   }) => {
+    const { data: startupConfig } = useGetStartupConfig();
     const localize = useLocalize();
     const { isAuthenticated } = useAuthContext();
     useTitleGeneration(isAuthenticated);
@@ -127,6 +128,18 @@ const Nav = memo(
       },
       isFetchingNext: isFetchingNextPage,
     });
+
+    useEffect(() => {
+      if (startupConfig?.customCss) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = startupConfig.customCss;
+        document.head.appendChild(link);
+        return () => {
+          document.head.removeChild(link);
+        };
+      }
+    }, [startupConfig?.customCss]);
 
     const conversations = useMemo(() => {
       return data ? data.pages.flatMap((page) => page.conversations) : [];
