@@ -40,9 +40,7 @@ export default function StartupLayout({ isAuthenticated }: { isAuthenticated?: b
       }
     }
     if (data) {
-      console.log('data', data);
       setStartupConfig(data);
-      console.log('startupConfig', data.appTitle);
     }
   }, [isAuthenticated, navigate, data]);
 
