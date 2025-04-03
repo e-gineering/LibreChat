@@ -4,6 +4,11 @@
 services:
   api:
     container_name: LibreChat
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "${PORT}:${PORT}"
     depends_on:
