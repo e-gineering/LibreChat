@@ -10,7 +10,7 @@ import {
   useLocalStorage,
   useNavScrolling,
 } from '~/hooks';
-import { useConversationsInfiniteQuery } from '~/data-provider';
+import { useConversationsInfiniteQuery, useGetStartupConfig } from '~/data-provider';
 import { Conversations } from '~/components/Conversations';
 import BookmarkNav from './Bookmarks/BookmarkNav';
 import AccountSettings from './AccountSettings';
@@ -29,7 +29,9 @@ const Nav = ({
   navVisible: boolean;
   setNavVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const { data: startupConfig } = useGetStartupConfig();
   const localize = useLocalize();
+
   const { isAuthenticated } = useAuthContext();
 
   const [navWidth, setNavWidth] = useState('260px');
@@ -77,6 +79,7 @@ const Nav = ({
       },
       { enabled: isAuthenticated },
     );
+
   useEffect(() => {
     // When a tag is selected, refetch the list of conversations related to that tag
     refetch();
@@ -90,6 +93,19 @@ const Nav = ({
       ? searchQueryRes?.isFetchingNextPage ?? false
       : isFetchingNextPage,
   });
+
+  useEffect(() => {
+    if (startupConfig?.customCss) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = startupConfig.customCss;
+      document.head.appendChild(link);
+      // Cleanup to remove the link when the component unmounts or customCss changes
+      return () => {
+        document.head.removeChild(link);
+      };
+    }
+  }, [startupConfig?.customCss]); // Add startupConfig?.customCss to the dependency array
 
   const conversations = useMemo(
     () =>
