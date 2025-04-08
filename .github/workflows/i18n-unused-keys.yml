@@ -3,14 +3,14 @@ name: Detect Unused i18next Strings
 on:
   pull_request:
     paths:
-      - "client/src/**"
-      - "api/**"
+      - 'client/src/**'
+      - 'api/**'
 
 jobs:
   detect-unused-i18n-keys:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write  # Required for posting PR comments
+      pull-requests: write # Required for posting PR comments
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -38,6 +38,11 @@ jobs:
 
           # Check if each key is used in the source code
           for KEY in $KEYS; do
+            # Skip keys ending with _conditional
+            if [[ "$KEY" == *_conditional ]]; then
+              echo "Skipping conditional key: $KEY"
+              continue
+            fi
             FOUND=false
             for DIR in "${SOURCE_DIRS[@]}"; do
               if grep -r --include=\*.{js,jsx,ts,tsx} -q "$KEY" "$DIR"; then
@@ -45,7 +50,7 @@ jobs:
                 break
               fi
             done
-          
+
             if [[ "$FOUND" == false ]]; then
               UNUSED_KEYS+=("$KEY")
             fi
