@@ -15,15 +15,16 @@ import type {
   TConversation,
   TEndpointOption,
   TEndpointsConfig,
+  EndpointSchemaKey,
 } from 'librechat-data-provider';
 import type { SetterOrUpdater } from 'recoil';
 import type { TAskFunction, ExtendedFile } from '~/common';
 import useSetFilesToDelete from '~/hooks/Files/useSetFilesToDelete';
 import useGetSender from '~/hooks/Conversations/useGetSender';
+import store, { useGetEphemeralAgent } from '~/store';
 import { getArtifactsMode } from '~/utils/artifacts';
 import { getEndpointField, logger } from '~/utils';
 import useUserKey from '~/hooks/Input/useUserKey';
-import store from '~/store';
 
 const logChatRequest = (request: Record<string, unknown>) => {
   logger.log('=====================================\nAsk function called with:');
@@ -64,6 +65,7 @@ export default function useChatFunctions({
   setSubmission: SetterOrUpdater<TSubmission | null>;
   setLatestMessage?: SetterOrUpdater<TMessage | null>;
 }) {
+  const getEphemeralAgent = useGetEphemeralAgent();
   const codeArtifacts = useRecoilValue(store.codeArtifacts);
   const includeShadcnui = useRecoilValue(store.includeShadcnui);
   const customPromptMode = useRecoilValue(store.customPromptMode);
@@ -88,11 +90,12 @@ export default function useChatFunctions({
     {
       editedText = null,
       editedMessageId = null,
-      resubmitFiles = false,
+      isResubmission = false,
       isRegenerate = false,
       isContinued = false,
       isEdited = false,
       overrideMessages,
+      overrideFiles,
     } = {},
   ) => {
     setShowStopButton(false);
@@ -118,6 +121,7 @@ export default function useChatFunctions({
       return;
     }
 
+    const ephemeralAgent = getEphemeralAgent(conversationId ?? Constants.NEW_CONVO);
     const isEditOrContinue = isEdited || isContinued;
 
     let currentMessages: TMessage[] | null = overrideMessages ?? getMessages() ?? [];
@@ -144,11 +148,17 @@ export default function useChatFunctions({
       conversationId = null;
     }
 
-    const parentMessage = currentMessages.find(
-      (msg) => msg.messageId === latestMessage?.parentMessageId,
+    const targetParentMessageId = isRegenerate ? messageId : latestMessage?.parentMessageId;
+    /**
+     * If the user regenerated or resubmitted the message, the current parent is technically
+     * the latest user message, which is passed into `ask`; otherwise, we can rely on the
+     * latestMessage to find the parent.
+     */
+    const targetParentMessage = currentMessages.find(
+      (msg) => msg.messageId === targetParentMessageId,
     );
 
-    let thread_id = parentMessage?.thread_id ?? latestMessage?.thread_id;
+    let thread_id = targetParentMessage?.thread_id ?? latestMessage?.thread_id;
     if (thread_id == null) {
       thread_id = currentMessages.find((message) => message.thread_id)?.thread_id;
     }
@@ -156,10 +166,10 @@ export default function useChatFunctions({
     const endpointsConfig = queryClient.getQueryData<TEndpointsConfig>([QueryKeys.endpoints]);
     const endpointType = getEndpointField(endpointsConfig, endpoint, 'type');
 
-    // set the endpoint option
+    /** This becomes part of the `endpointOption` */
     const convo = parseCompactConvo({
-      endpoint,
-      endpointType,
+      endpoint: endpoint as EndpointSchemaKey,
+      endpointType: endpointType as EndpointSchemaKey,
       conversation: conversation ?? {},
     });
 
@@ -198,10 +208,14 @@ export default function useChatFunctions({
       error: false,
     };
 
+    const submissionFiles = overrideFiles ?? targetParentMessage?.files;
     const reuseFiles =
-      (isRegenerate || resubmitFiles) && parentMessage?.files && parentMessage.files.length > 0;
+      (isRegenerate || (overrideFiles != null && overrideFiles.length)) &&
+      submissionFiles &&
+      submissionFiles.length > 0;
+
     if (setFiles && reuseFiles === true) {
-      currentMsg.files = parentMessage.files;
+      currentMsg.files = [...submissionFiles];
       setFiles(new Map());
       setFilesToDelete({});
     } else if (setFiles && files && files.size > 0) {
@@ -216,7 +230,6 @@ export default function useChatFunctions({
       setFilesToDelete({});
     }
 
-    // construct the placeholder response message
     const generation = editedText ?? latestMessage?.text ?? '';
     const responseText = isEditOrContinue ? generation : '';
 
@@ -295,8 +308,10 @@ export default function useChatFunctions({
       isEdited: isEditOrContinue,
       isContinued,
       isRegenerate,
+      isResubmission,
       initialResponse,
       isTemporary,
+      ephemeralAgent,
     };
 
     if (isRegenerate) {
