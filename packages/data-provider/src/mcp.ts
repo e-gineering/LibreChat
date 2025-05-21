@@ -5,6 +5,8 @@ const BaseOptionsSchema = z.object({
   iconPath: z.string().optional(),
   timeout: z.number().optional(),
   initTimeout: z.number().optional(),
+  /** Controls visibility in chat dropdown menu (MCPSelect) */
+  chatMenu: z.boolean().optional(),
 });
 
 export const StdioOptionsSchema = BaseOptionsSchema.extend({
@@ -51,9 +53,10 @@ export const WebSocketOptionsSchema = BaseOptionsSchema.extend({
   type: z.literal('websocket').optional(),
   url: z
     .string()
-    .url()
+    .transform((val: string) => extractEnvVariable(val))
+    .pipe(z.string().url())
     .refine(
-      (val) => {
+      (val: string) => {
         const protocol = new URL(val).protocol;
         return protocol === 'ws:' || protocol === 'wss:';
       },
@@ -68,9 +71,10 @@ export const SSEOptionsSchema = BaseOptionsSchema.extend({
   headers: z.record(z.string(), z.string()).optional(),
   url: z
     .string()
-    .url()
+    .transform((val: string) => extractEnvVariable(val))
+    .pipe(z.string().url())
     .refine(
-      (val) => {
+      (val: string) => {
         const protocol = new URL(val).protocol;
         return protocol !== 'ws:' && protocol !== 'wss:';
       },
@@ -80,10 +84,29 @@ export const SSEOptionsSchema = BaseOptionsSchema.extend({
     ),
 });
 
+export const StreamableHTTPOptionsSchema = BaseOptionsSchema.extend({
+  type: z.literal('streamable-http'),
+  headers: z.record(z.string(), z.string()).optional(),
+  url: z
+    .string()
+    .transform((val: string) => extractEnvVariable(val))
+    .pipe(z.string().url())
+    .refine(
+      (val: string) => {
+        const protocol = new URL(val).protocol;
+        return protocol !== 'ws:' && protocol !== 'wss:';
+      },
+      {
+        message: 'Streamable HTTP URL must not start with ws:// or wss://',
+      },
+    ),
+});
+
 export const MCPOptionsSchema = z.union([
   StdioOptionsSchema,
   WebSocketOptionsSchema,
   SSEOptionsSchema,
+  StreamableHTTPOptionsSchema,
 ]);
 
 export const MCPServersSchema = z.record(z.string(), MCPOptionsSchema);
@@ -119,6 +142,10 @@ export function processMCPEnv(obj: Readonly<MCPOptions>, userId?: string): MCPOp
       processedHeaders[key] = extractEnvVariable(value);
     }
     newObj.headers = processedHeaders;
+  }
+
+  if ('url' in newObj && newObj.url) {
+    newObj.url = extractEnvVariable(newObj.url);
   }
 
   return newObj;
