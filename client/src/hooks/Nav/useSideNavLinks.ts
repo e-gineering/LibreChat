@@ -15,9 +15,11 @@ import BookmarkPanel from '~/components/SidePanel/Bookmarks/BookmarkPanel';
 import MemoryViewer from '~/components/SidePanel/Memories/MemoryViewer';
 import PanelSwitch from '~/components/SidePanel/Builder/PanelSwitch';
 import PromptsAccordion from '~/components/Prompts/PromptsAccordion';
+import { Blocks, MCPIcon, AttachmentIcon } from '~/components/svg';
 import Parameters from '~/components/SidePanel/Parameters/Panel';
 import FilesPanel from '~/components/SidePanel/Files/Panel';
-import { Blocks, AttachmentIcon } from '~/components/svg';
+import MCPPanel from '~/components/SidePanel/MCP/MCPPanel';
+import { useGetStartupConfig } from '~/data-provider';
 import { useHasAccess } from '~/hooks';
 
 export default function useSideNavLinks({
@@ -59,6 +61,7 @@ export default function useSideNavLinks({
     permissionType: PermissionTypes.AGENTS,
     permission: Permissions.CREATE,
   });
+  const { data: startupConfig } = useGetStartupConfig();
 
   const Links = useMemo(() => {
     const links: NavLink[] = [];
@@ -149,6 +152,21 @@ export default function useSideNavLinks({
       });
     }
 
+    if (
+      startupConfig?.mcpServers &&
+      Object.values(startupConfig.mcpServers).some(
+        (server) => server.customUserVars && Object.keys(server.customUserVars).length > 0,
+      )
+    ) {
+      links.push({
+        title: 'com_nav_setting_mcp',
+        label: '',
+        icon: MCPIcon,
+        id: 'mcp-settings',
+        Component: MCPPanel,
+      });
+    }
+
     links.push({
       title: 'com_sidepanel_hide_panel',
       label: '',
@@ -171,6 +189,7 @@ export default function useSideNavLinks({
     hasAccessToBookmarks,
     hasAccessToCreateAgents,
     hidePanel,
+    startupConfig,
   ]);
 
   return Links;
