@@ -20,3 +20,9 @@ Keeping track of custom features added to `e-gineering/LibreChat`.
     - `$FAVICON_PATH/icon-192x192.png` ➜ `/app/client/dist/assets/icon-192x192.png`
     - `$FAVICON_PATH/maskable-icon.png` ➜ `/app/client/dist/assets/maskable-icon.png`
   - These images are defined in the `vite.config.ts` file.
+
+- Custom `librechat.yaml`
+  - Certain config changes are only possible by editing the `librechat.yaml` file.
+  - To add changes for a specific implementation, create an environment variable called `LIBRECHAT_CUSTOM_CONFIG` and create a file called `librechat.{LIBRECHAT_CUSTOM_CONFIG}.yaml`, replacing the placeholder with the value of the environment variable.
+  - Add an exception to `.dockerignore` after the `librechat*` entry, like this: `!librechat.{LIBRECHAT_CUSTOM_CONFIG}.yaml`.
+  - The `librechat.example.yaml` file has an example implementation. Further documentation is here: https://www.librechat.ai/docs/configuration/librechat_yaml
