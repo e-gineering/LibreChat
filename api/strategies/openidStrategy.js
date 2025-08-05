@@ -49,7 +49,7 @@ async function customFetch(url, options) {
       logger.info(`[openidStrategy] proxy agent configured: ${process.env.PROXY}`);
       fetchOptions = {
         ...options,
-        dispatcher: new HttpsProxyAgent(process.env.PROXY),
+        dispatcher: new undici.ProxyAgent(process.env.PROXY),
       };
     }
 
@@ -104,6 +104,14 @@ class CustomOpenIDStrategy extends OpenIDStrategy {
     if (options?.state && !params.has('state')) {
       params.set('state', options.state);
     }
+
+    if (process.env.OPENID_AUDIENCE) {
+      params.set('audience', process.env.OPENID_AUDIENCE);
+      logger.debug(
+        `[openidStrategy] Adding audience to authorization request: ${process.env.OPENID_AUDIENCE}`,
+      );
+    }
+
     return params;
   }
 }
@@ -118,7 +126,7 @@ class CustomOpenIDStrategy extends OpenIDStrategy {
  */
 const exchangeAccessTokenIfNeeded = async (config, accessToken, sub, fromCache = false) => {
   const tokensCache = getLogStores(CacheKeys.OPENID_EXCHANGED_TOKENS);
-  const onBehalfFlowRequired = isEnabled(process.env.OPENID_ON_BEHALF_FLOW_FOR_USERINFRO_REQUIRED);
+  const onBehalfFlowRequired = isEnabled(process.env.OPENID_ON_BEHALF_FLOW_FOR_USERINFO_REQUIRED);
   if (onBehalfFlowRequired) {
     if (fromCache) {
       const cachedToken = await tokensCache.get(sub);
@@ -130,7 +138,7 @@ const exchangeAccessTokenIfNeeded = async (config, accessToken, sub, fromCache =
       config,
       'urn:ietf:params:oauth:grant-type:jwt-bearer',
       {
-        scope: process.env.OPENID_ON_BEHALF_FLOW_USERINFRO_SCOPE || 'user.read',
+        scope: process.env.OPENID_ON_BEHALF_FLOW_USERINFO_SCOPE || 'user.read',
         assertion: accessToken,
         requested_token_use: 'on_behalf_of',
       },
@@ -353,7 +361,7 @@ async function setupOpenId() {
             username = userinfo[process.env.OPENID_USERNAME_CLAIM];
           } else {
             username = convertToUsername(
-              userinfo.username || userinfo.given_name || userinfo.email,
+              userinfo.preferred_username || userinfo.username || userinfo.email,
             );
           }
 

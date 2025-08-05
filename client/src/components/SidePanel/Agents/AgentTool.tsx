@@ -4,13 +4,21 @@ import { ChevronDown } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { useUpdateUserPluginsMutation } from 'librechat-data-provider/react-query';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionContent,
+  TrashIcon,
+  CircleHelpIcon,
+  OGDialog,
+  OGDialogTrigger,
+  Label,
+  Checkbox,
+  OGDialogTemplate,
+  useToastContext,
+} from '@librechat/client';
 import type { AgentToolType } from 'librechat-data-provider';
 import type { AgentForm } from '~/common';
-import { Accordion, AccordionItem, AccordionContent } from '~/components/ui/Accordion';
-import { OGDialog, OGDialogTrigger, Label, Checkbox } from '~/components/ui';
-import { TrashIcon, CircleHelpIcon } from '~/components/svg';
-import OGDialogTemplate from '~/components/ui/OGDialogTemplate';
-import { useToastContext } from '~/Providers';
 import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';
 
@@ -19,7 +27,7 @@ export default function AgentTool({
   allTools,
 }: {
   tool: string;
-  allTools: Record<string, AgentToolType & { tools?: AgentToolType[] }>;
+  allTools?: Record<string, AgentToolType & { tools?: AgentToolType[] }>;
   agent_id?: string;
 }) {
   const [isHovering, setIsHovering] = useState(false);
@@ -30,8 +38,10 @@ export default function AgentTool({
   const { showToast } = useToastContext();
   const updateUserPlugins = useUpdateUserPluginsMutation();
   const { getValues, setValue } = useFormContext<AgentForm>();
+  if (!allTools) {
+    return null;
+  }
   const currentTool = allTools[tool];
-
   const getSelectedTools = () => {
     if (!currentTool?.tools) return [];
     const formTools = getValues('tools') || [];
@@ -224,7 +234,7 @@ export default function AgentTool({
                             }}
                             className={cn(
                               'h-4 w-4 rounded border border-gray-300 transition-all duration-200 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500',
-                              isExpanded ? 'opacity-100' : 'opacity-0',
+                              isExpanded ? 'visible' : 'pointer-events-none invisible',
                             )}
                             onClick={(e) => e.stopPropagation()}
                             onKeyDown={(e) => {
