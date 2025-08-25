@@ -1,0 +1,44 @@
+services:
+  api:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.librechat.rule=Host(`url.domain.com`)"
+      - "traefik.http.routers.librechat.entrypoints=websecure"
+      - "traefik.http.routers.librechat.tls.certresolver=leresolver"
+      - "traefik.http.services.librechat.loadbalancer.server.port=3080"
+    networks:
+      - librechat_default
+    volumes:
+      - ./librechat.yaml:/app/librechat.yaml
+  traefik:
+    image: traefik:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - librechat_default
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.leresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.leresolver.acme.email=justin.dickey@e-gineering.com"
+      - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json"
+  metrics:
+    image: ghcr.io/e-gineering/librechat_exporter:main
+    depends_on:
+      - mongodb
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - librechat_default
+networks:
+  librechat_default:
+    external: true
