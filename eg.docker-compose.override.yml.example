@@ -41,4 +41,4 @@ services:
       - librechat_default
 networks:
   librechat_default:
-    external: true
+    external: false
