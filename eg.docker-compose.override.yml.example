@@ -1,5 +1,6 @@
 services:
   api:
+    image: ghcr.io/danny-avila/librechat:v0.7.9
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.librechat.rule=Host(`url.domain.com`)"
@@ -11,7 +12,7 @@ services:
     volumes:
       - ./librechat.yaml:/app/librechat.yaml
   traefik:
-    image: traefik:latest
+    image: traefik:v3.0
     ports:
       - "80:80"
       - "443:443"
