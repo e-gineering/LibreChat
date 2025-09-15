@@ -91,9 +91,10 @@ mcpServers:
       - mcp-server-time
     env:
       TZ: America/New_York
+
 # Definition of custom endpoints
-endpoints:
-  custom:
+# endpoints:
+# custom:
 # - name: "Perplexity"
 #   apiKey: '${PERPLEXITY_API_KEY}'
 #   baseURL: "https://api.perplexity.ai/"
