@@ -22,7 +22,7 @@ After basic provisioning of the VM and ensuring SSH access:
 
 ### Docker Setup
 
-- **Official Remote Docker Linux Install guide**: [LibreChat Docs(https://www.librechat.ai/docs/remote/docker_linux)]
+- **Official Remote Docker Linux Install guide**: [LibreChat Docs](https://www.librechat.ai/docs/remote/docker_linux)
 
 ### Repository Setup
 ```sh
