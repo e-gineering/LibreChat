@@ -73,7 +73,23 @@ OPENAI_API_KEY=sk-your_key_here
 
 # Disable registration after creating admin account (by default its the first account)
 ALLOW_REGISTRATION=false
+
+# RAG for retrieval augmented generation
+RAG_API_URL=
+RAG_OPENAI_API_KEY
+
+# OCR for "optical character recognition"
+OCR_API_KEY=
 ```
+
+Additional options to configure:
+* Moderation. Rate limiting options might be too strict if you're all using it at the same time from the same location
+```env
+LIMIT_MESSAGE_IP=false
+MESSAGE_IP_MAX=120
+MESSAGE_IP_WINDOW=1
+```
+* SSO login with Microsoft can be configured using `OPENID` options.
 
 ### Docker Compose Override
 
