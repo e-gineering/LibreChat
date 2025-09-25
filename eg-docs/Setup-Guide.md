@@ -82,14 +82,14 @@ RAG_OPENAI_API_KEY=
 OCR_API_KEY=
 ```
 
-Additional options to configure:
-* Moderation. Rate limiting options might be too strict if you're all using it at the same time from the same location
+Moderation options. Rate limiting options might be too strict if you're all using it at the same time from the same location
+
 ```env
 LIMIT_MESSAGE_IP=false
 MESSAGE_IP_MAX=120
 MESSAGE_IP_WINDOW=1
 ```
-* SSO login with Microsoft can be configured using `OPENID` options.
+* SSO login with Microsoft can be configured using the information here: [LibreChat SAML Docs](https://www.librechat.ai/docs/configuration/authentication/SAML)
 
 ### Docker Compose Override
 
@@ -98,6 +98,7 @@ This file is used to volume map the `librechat.yaml` file into the container. An
 ### Librechat.yaml
 
 Additional providers, endpoints, and MCP servers can be added here in the `librechat.yaml`. As well as Terms of Service modal, and other configuration options. 
+See [Librechat.yaml docs](https://www.librechat.ai/docs/configuration/librechat_yaml) for more information.
 
 ## Deployment
 
