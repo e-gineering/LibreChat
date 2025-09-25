@@ -76,7 +76,7 @@ ALLOW_REGISTRATION=false
 
 # RAG for retrieval augmented generation
 RAG_API_URL=
-RAG_OPENAI_API_KEY
+RAG_OPENAI_API_KEY=
 
 # OCR for "optical character recognition"
 OCR_API_KEY=
