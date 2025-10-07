@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/danny-avila/librechat:v0.7.9
+    image: ghcr.io/danny-avila/librechat:v0.8.0
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.librechat.rule=Host(`url.domain.com`)"
