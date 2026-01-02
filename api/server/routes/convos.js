@@ -6,12 +6,14 @@ const { logger } = require('@librechat/data-schemas');
 const { CacheKeys, EModelEndpoint } = require('librechat-data-provider');
 const {
   createImportLimiters,
+  validateConvoAccess,
   createForkLimiters,
   configMiddleware,
 } = require('~/server/middleware');
 const { getConvosByCursor, deleteConvos, getConvo, saveConvo } = require('~/models/Conversation');
 const { forkConversation, duplicateConversation } = require('~/server/utils/import/fork');
 const { storage, importFileFilter } = require('~/server/routes/files/multer');
+const { deleteAllSharedLinks, deleteConvoSharedLink } = require('~/models');
 const requireJwtAuth = require('~/server/middleware/requireJwtAuth');
 const { importConversations } = require('~/server/utils/import');
 const { deleteToolCalls } = require('~/models/ToolCall');
@@ -30,7 +32,8 @@ router.get('/', async (req, res) => {
   const cursor = req.query.cursor;
   const isArchived = isEnabled(req.query.isArchived);
   const search = req.query.search ? decodeURIComponent(req.query.search) : undefined;
-  const order = req.query.order || 'desc';
+  const sortBy = req.query.sortBy || 'createdAt';
+  const sortDirection = req.query.sortDirection || 'desc';
 
   let tags;
   if (req.query.tags) {
@@ -44,7 +47,8 @@ router.get('/', async (req, res) => {
       isArchived,
       tags,
       search,
-      order,
+      sortBy,
+      sortDirection,
     });
     res.status(200).json(result);
   } catch (error) {
@@ -64,16 +68,17 @@ router.get('/:conversationId', async (req, res) => {
   }
 });
 
-router.post('/gen_title', async (req, res) => {
-  const { conversationId } = req.body;
+router.get('/gen_title/:conversationId', async (req, res) => {
+  const { conversationId } = req.params;
   const titleCache = getLogStores(CacheKeys.GEN_TITLE);
   const key = `${req.user.id}-${conversationId}`;
   let title = await titleCache.get(key);
 
   if (!title) {
-    // Retry every 1s for up to 20s
-    for (let i = 0; i < 20; i++) {
-      await sleep(1000);
+    // Exponential backoff: 500ms, 1s, 2s, 4s, 8s (total ~15.5s max wait)
+    const delays = [500, 1000, 2000, 4000, 8000];
+    for (const delay of delays) {
+      await sleep(delay);
       title = await titleCache.get(key);
       if (title) {
         break;
@@ -124,7 +129,10 @@ router.delete('/', async (req, res) => {
 
   try {
     const dbResponse = await deleteConvos(req.user.id, filter);
-    await deleteToolCalls(req.user.id, filter.conversationId);
+    if (filter.conversationId) {
+      await deleteToolCalls(req.user.id, filter.conversationId);
+      await deleteConvoSharedLink(req.user.id, filter.conversationId);
+    }
     res.status(201).json(dbResponse);
   } catch (error) {
     logger.error('Error clearing conversations', error);
@@ -136,6 +144,7 @@ router.delete('/all', async (req, res) => {
   try {
     const dbResponse = await deleteConvos(req.user.id, {});
     await deleteToolCalls(req.user.id);
+    await deleteAllSharedLinks(req.user.id);
     res.status(201).json(dbResponse);
   } catch (error) {
     logger.error('Error clearing conversations', error);
@@ -143,17 +152,39 @@ router.delete('/all', async (req, res) => {
   }
 });
 
-router.post('/update', async (req, res) => {
-  const update = req.body.arg;
+/** Maximum allowed length for conversation titles */
+const MAX_CONVO_TITLE_LENGTH = 1024;
 
-  if (!update.conversationId) {
+/**
+ * Updates a conversation's title.
+ * @route POST /update
+ * @param {string} req.body.arg.conversationId - The conversation ID to update.
+ * @param {string} req.body.arg.title - The new title for the conversation.
+ * @returns {object} 201 - The updated conversation object.
+ */
+router.post('/update', validateConvoAccess, async (req, res) => {
+  const { conversationId, title } = req.body.arg ?? {};
+
+  if (!conversationId) {
     return res.status(400).json({ error: 'conversationId is required' });
   }
 
+  if (title === undefined) {
+    return res.status(400).json({ error: 'title is required' });
+  }
+
+  if (typeof title !== 'string') {
+    return res.status(400).json({ error: 'title must be a string' });
+  }
+
+  const sanitizedTitle = title.trim().slice(0, MAX_CONVO_TITLE_LENGTH);
+
   try {
-    const dbResponse = await saveConvo(req, update, {
-      context: `POST /api/convos/update ${update.conversationId}`,
-    });
+    const dbResponse = await saveConvo(
+      req,
+      { conversationId, title: sanitizedTitle },
+      { context: `POST /api/convos/update ${conversationId}` },
+    );
     res.status(201).json(dbResponse);
   } catch (error) {
     logger.error('Error updating conversation', error);
