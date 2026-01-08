@@ -10,3 +10,10 @@ ocr:
   apiKey: "${AZURE_MISTRAL_OCR_API_KEY}"                 # Reference to your Azure API key in .env
   baseURL: "https://mistral-ocr-2503-edge.eastus2.models.ai.azure.com/v1"  # Your Azure endpoint
   strategy: "azure_mistral_ocr"                          # Use Azure strategy
+
+# Interface configuration
+interface:
+  mcpServers:
+    use: true       # Enable users to USE configured MCP servers
+    create: true    # Enable users to CREATE new MCP servers
+    share: true     # Enable users to SHARE MCP servers
