@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
   const cursor = req.query.cursor;
   const isArchived = isEnabled(req.query.isArchived);
   const search = req.query.search ? decodeURIComponent(req.query.search) : undefined;
-  const sortBy = req.query.sortBy || 'createdAt';
+  const sortBy = req.query.sortBy || 'updatedAt';
   const sortDirection = req.query.sortDirection || 'desc';
 
   let tags;
@@ -149,6 +149,37 @@ router.delete('/all', async (req, res) => {
   } catch (error) {
     logger.error('Error clearing conversations', error);
     res.status(500).send('Error clearing conversations');
+  }
+});
+
+/**
+ * Archives or unarchives a conversation.
+ * @route POST /archive
+ * @param {string} req.body.arg.conversationId - The conversation ID to archive/unarchive.
+ * @param {boolean} req.body.arg.isArchived - Whether to archive (true) or unarchive (false).
+ * @returns {object} 200 - The updated conversation object.
+ */
+router.post('/archive', validateConvoAccess, async (req, res) => {
+  const { conversationId, isArchived } = req.body.arg ?? {};
+
+  if (!conversationId) {
+    return res.status(400).json({ error: 'conversationId is required' });
+  }
+
+  if (typeof isArchived !== 'boolean') {
+    return res.status(400).json({ error: 'isArchived must be a boolean' });
+  }
+
+  try {
+    const dbResponse = await saveConvo(
+      req,
+      { conversationId, isArchived },
+      { context: `POST /api/convos/archive ${conversationId}` },
+    );
+    res.status(200).json(dbResponse);
+  } catch (error) {
+    logger.error('Error archiving conversation', error);
+    res.status(500).send('Error archiving conversation');
   }
 });
 
