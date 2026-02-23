@@ -4,6 +4,9 @@
 # Configuration version (required)
 version: 1.2.1
 
+# File storage — persist uploads to Azure Blob Storage
+fileStrategy: "azure_blob"
+
 # OCR
 ocr:
   mistralModel: "mistral-ocr-2503-edge"                  # Should match your Azure deployment name
