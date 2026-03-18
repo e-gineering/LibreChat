@@ -30,6 +30,20 @@ endpoints:
           gpt-5-nano:
             deploymentName: "gpt-5-nano"
 
+# MCP Servers Configuration
+mcpSettings:
+  allowedDomains:
+    - '${FILE_PROCESSOR_MCP_DOMAIN}'
+
+mcpServers:
+  eg-doc-review-tool:
+    title: Fancy doc generator
+    type: streamable-http
+    url: https://${FILE_PROCESSOR_MCP_DOMAIN}/mcp
+    headers:
+      Authorization: "Bearer ${FILE_PROCESSOR_MCP_AUTH_TOKEN}"
+    timeout: 600000
+
 # Interface configuration
 interface:
   mcpServers:
