@@ -30,10 +30,6 @@ endpoints:
           gpt-5-nano:
             deploymentName: "gpt-5-nano"
 
-# Web Search Configuration
-webSearch:
-  serperApiKey: "${SERPER_API_KEY}"
-
 # Interface configuration
 interface:
   mcpServers:
