@@ -34,6 +34,7 @@ endpoints:
 mcpSettings:
   allowedDomains:
     - '${FILE_PROCESSOR_MCP_DOMAIN}'
+    - 'insurance-proposal-mcp.azurewebsites.net'
 
 mcpServers:
   eg-doc-review-tool:
