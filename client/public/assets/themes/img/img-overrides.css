@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+.dark {
+    --surface-submit: #00b2e2;
+    --surface-submit-hover: #0090b7;
+}
+
 .bg-surface-primary-alt {
     background-color: #e6f5fb; /* Light blue sidebar background */
 }
@@ -22,7 +28,7 @@
     background-color: #00b2e2;
 }
 
-.text-green-600, .dark .dark\:text-green-400, 
+.text-green-600, .dark .dark\:text-green-400, .dark .dark\:text-green-500,
 .dark .peer:focus~.dark\:peer-focus\:text-green-500,
 .peer:focus~.peer-focus\:text-green-600,
 .peer:focus~.peer-focus\:text-green-500 {
