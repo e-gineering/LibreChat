@@ -72,6 +72,7 @@ const mistralModels = {
   'mistral-large-2402': 127500,
   'mistral-large-2407': 127500,
   'mistral-large': 131000,
+  'mistral-large-3': 255000,
   'mistral-saba': 32000,
   'ministral-3b': 131000,
   'ministral-8b': 131000,
@@ -140,6 +141,7 @@ const anthropicModels = {
   'claude-sonnet-4': 1000000,
   'claude-sonnet-4-6': 1000000,
   'claude-opus-4-6': 1000000,
+  'claude-opus-4-7': 1000000,
 };
 
 const deepseekModels = {
@@ -385,6 +387,7 @@ const anthropicMaxOutputs = {
   'claude-opus-4': 32000,
   'claude-opus-4-5': 64000,
   'claude-opus-4-6': 128000,
+  'claude-opus-4-7': 128000,
   'claude-3.5-sonnet': 8192,
   'claude-3-5-sonnet': 8192,
   'claude-3.7-sonnet': 128000,
