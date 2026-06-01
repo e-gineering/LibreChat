@@ -1,0 +1,53 @@
+# For more information, see the Configuration Guide:
+# https://www.librechat.ai/docs/configuration/librechat_yaml
+
+# Configuration version (required)
+version: 1.3.4
+
+# OCR
+ocr:
+  mistralModel: "mistral-document-ai-2512"
+  apiKey: "${AZURE_MISTRAL_OCR_API_KEY}"
+  baseURL: "https://edge-foundry-resource.services.ai.azure.com/providers/mistral/azure/ocr"
+  strategy: "azure_mistral_ocr"
+
+# User memory — key/value store persisted across conversations
+memory:
+  tokenLimit: 3000
+  agent:
+    provider: "azureOpenAI"
+    model: "gpt-5-nano"
+
+# Azure OpenAI endpoint (used by memory agent)
+endpoints:
+  azureOpenAI:
+    groups:
+      - group: "img-librechat"
+        apiKey: "${AZURE_OPENAI_API_KEY}"
+        instanceName: "openai-img-librechat-02"
+        version: "2025-01-01-preview"
+        models:
+          gpt-5-nano:
+            deploymentName: "gpt-5-nano"
+
+# MCP Servers Configuration
+mcpSettings:
+  allowedDomains:
+    - '${FILE_PROCESSOR_MCP_DOMAIN}'
+    - 'insurance-proposal-mcp.azurewebsites.net'
+
+mcpServers:
+  eg-doc-review-tool:
+    title: Fancy doc generator
+    type: streamable-http
+    url: https://${FILE_PROCESSOR_MCP_DOMAIN}/mcp
+    headers:
+      Authorization: "Bearer ${FILE_PROCESSOR_MCP_AUTH_TOKEN}"
+    timeout: 600000
+
+# Interface configuration
+interface:
+  mcpServers:
+    use: true       # Enable users to USE configured MCP servers
+    create: true    # Enable users to CREATE new MCP servers
+    share: true     # Enable users to SHARE MCP servers
