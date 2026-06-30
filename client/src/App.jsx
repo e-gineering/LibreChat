@@ -7,6 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query';
 import { Toast, ThemeProvider, ToastProvider, useInputModality } from '@librechat/client';
 import { ScreenshotProvider, useApiErrorBoundary } from './hooks';
+import CustomStyleLoader from '~/components/System/CustomStyleLoader';
 import WakeLockManager from '~/components/System/WakeLockManager';
 import QueryDevtoolsGate from '~/components/QueryDevtoolsGate';
 import LanguageSync from '~/components/System/LanguageSync';
@@ -84,6 +85,7 @@ const App = () => {
                       `_TRANSITION_SUPPORT_UNSTABLE` hooks this app does not use.
                       Worth revisiting once that state has moved to Jotai. */}
                   <RouterProvider router={router} useTransitions={false} />
+                  <CustomStyleLoader />
                   <WakeLockManager />
                   <QueryDevtoolsGate />
                   <Toast />

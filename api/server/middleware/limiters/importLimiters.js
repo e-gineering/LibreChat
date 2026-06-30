@@ -68,7 +68,7 @@ const createImportLimiters = () => {
     max: importUserMax,
     handler: createImportHandler(false),
     keyGenerator: function (req) {
-      return req.user?.id;
+      return req.user?.id; // Use the user ID or NULL if not available
     },
     store: limiterCache('import_user_limiter'),
   };
