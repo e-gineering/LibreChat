@@ -137,7 +137,9 @@ helm/**/.values.yaml
 *.cert
 
 # AI Assistants
-/.claude/
+/.claude/*
+# Track shared skills (e.g. the LibreChat release workflow) while keeping local settings ignored
+!/.claude/skills/
 /.codex/
 /.cursor/
 /.copilot/

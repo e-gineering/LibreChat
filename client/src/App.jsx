@@ -7,6 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Toast, ThemeProvider, ToastProvider } from '@librechat/client';
 import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query';
 import { ScreenshotProvider, useApiErrorBoundary } from './hooks';
+import CustomStyleLoader from '~/components/System/CustomStyleLoader';
 import WakeLockManager from '~/components/System/WakeLockManager';
 import QueryDevtoolsGate from '~/components/QueryDevtoolsGate';
 import LanguageSync from '~/components/System/LanguageSync';
@@ -64,6 +65,7 @@ const App = () => {
               <ToastProvider>
                 <DndProvider backend={HTML5Backend}>
                   <RouterProvider router={router} />
+                  <CustomStyleLoader />
                   <WakeLockManager />
                   <QueryDevtoolsGate />
                   <Toast />
