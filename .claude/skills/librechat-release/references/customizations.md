@@ -104,6 +104,19 @@ fork added it. It didn't — that was pre-existing context upstream later moved.
 The working tree commonly has untracked local artifacts (`Package.pdf`, `scansmpl.pdf`, a `backup/`
 MongoDB dump). Stage with explicit paths so these never get committed. `verify.sh` flags them if staged.
 
+### 7. Theme CSS variables are `R G B` triplets (since v0.8.8)
+Upstream's theme variables (`--text-primary`, `--surface-*`, …) hold bare channel triplets like
+`236 236 236`, not colors. In `client/public/assets/themes/*/…-overrides.css`, read them as
+`rgb(var(--x))` and set them as triplets (`--surface-submit: 0 178 226;`). A plain `var(--x)` is an
+invalid color, so the text falls back to near-black (this broke dark mode in v0.8.8.EG1). After any upstream
+theme refactor, check that the override CSS still matches the format `client/src/style.css` uses.
+
+### 8. Upstream commits the fork cherry-picked inflate `assess.sh`
+If the fork cherry-picked upstream PRs (e.g. new model support) that later shipped in the release,
+`assess.sh` counts their files as overlap and may recommend clean re-apply. Check with
+`git log <base>..<target> | grep '#<PR>'`; if they're upstream, reset onto upstream and cherry-pick
+only the real fork commit(s).
+
 ## Sanity check after resolving
 
 ```bash

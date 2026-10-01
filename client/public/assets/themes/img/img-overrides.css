@@ -4,8 +4,8 @@
 
 :root,
 .dark {
-    --surface-submit: #00b2e2;
-    --surface-submit-hover: #0090b7;
+    --surface-submit: 0 178 226; /* #00b2e2 — theme vars are R G B triplets */
+    --surface-submit-hover: 0 144 183; /* #0090b7 */
 }
 
 .bg-surface-primary-alt {
@@ -13,7 +13,7 @@
 }
 
 .dark .bg-surface-primary-alt {
-    background-color: var(--surface-primary-alt);
+    background-color: rgb(var(--surface-primary-alt));
 }
 
 .text-text-primary, .text-text-secondary, .text-black {
@@ -21,7 +21,7 @@
 }
 
 .dark .text-text-primary, .dark .text-text-secondary {
-    color: var(--text-primary);
+    color: rgb(var(--text-primary));
 }
 
 .bg-green-600, .dark .dark\:bg-green-600 {
