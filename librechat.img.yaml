@@ -30,6 +30,16 @@ endpoints:
           gpt-5-nano:
             deploymentName: "gpt-5-nano"
 
+# File limits — v0.8.8 counts an agent's File Context files toward fileLimit
+# (default 10), which broke agents with many context docs. The agent's provider
+# endpoint limit (anthropic) takes precedence over the agents one, so set both.
+fileConfig:
+  endpoints:
+    agents:
+      fileLimit: 50
+    anthropic:
+      fileLimit: 50
+
 # MCP Servers Configuration
 mcpSettings:
   allowedDomains:
