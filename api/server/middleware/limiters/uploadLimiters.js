@@ -72,7 +72,7 @@ const createFileLimiters = ({ onLimit } = {}) => {
     max: fileUploadUserMax,
     handler: createFileUploadHandler(false, onLimit),
     keyGenerator: function (req) {
-      return req.user?.id;
+      return req.user?.id; // Use the user ID or NULL if not available
     },
     store: limiterCache('file_upload_user_limiter'),
   };
