@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@ta
 import { FilesHostProvider, appFilesHost } from '~/Providers/FilesHostContext';
 import Direction, { ToastSwipeProvider } from '~/Providers/Direction';
 import { ScreenshotProvider, useApiErrorBoundary } from './hooks';
+import CustomStyleLoader from '~/components/System/CustomStyleLoader';
 import WakeLockManager from '~/components/System/WakeLockManager';
 import QueryDevtoolsGate from '~/components/QueryDevtoolsGate';
 import LanguageSync from '~/components/System/LanguageSync';
@@ -86,6 +87,7 @@ const App = () => {
                     <FilesHostProvider host={appFilesHost}>
                       <RouterProvider router={router} useTransitions={false} />
                     </FilesHostProvider>
+                    <CustomStyleLoader />
                     <WakeLockManager />
                     <QueryDevtoolsGate />
                     <Toast />

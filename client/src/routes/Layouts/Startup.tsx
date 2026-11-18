@@ -11,15 +11,6 @@ import { TranslationKeys, useLocalize } from '~/hooks';
 import { useGetStartupConfig } from '~/data-provider';
 import AuthLayout from '~/components/Auth/AuthLayout';
 
-const headerMap: Record<string, TranslationKeys> = {
-  '/login': 'com_auth_welcome_back',
-  '/register': 'com_auth_create_account',
-  '/forgot-password': 'com_auth_reset_password',
-  '/reset-password': 'com_auth_reset_password',
-  '/login/2fa': 'com_auth_verify_your_identity',
-  '/login/2fa/setup': 'com_auth_two_factor_setup_required',
-};
-
 export default function StartupLayout({ isAuthenticated }: { isAuthenticated?: boolean }) {
   const [error, setError] = useState<TranslationKeys | null>(null);
   const [headerText, setHeaderText] = useState<TranslationKeys | null>(null);
@@ -34,6 +25,16 @@ export default function StartupLayout({ isAuthenticated }: { isAuthenticated?: b
   const localize = useLocalize();
   const navigate = useNavigate();
   const location = useLocation();
+  const welcomeBackKey = startupConfig?.customWelcomeMessage || 'com_auth_welcome_back';
+
+  const headerMap: Record<string, TranslationKeys> = {
+    '/login': welcomeBackKey as TranslationKeys,
+    '/register': 'com_auth_create_account',
+    '/forgot-password': 'com_auth_reset_password',
+    '/reset-password': 'com_auth_reset_password',
+    '/login/2fa': 'com_auth_verify_your_identity',
+    '/login/2fa/setup': 'com_auth_two_factor_setup_required',
+  };
 
   const navigateRef = useRef(navigate);
   navigateRef.current = navigate;

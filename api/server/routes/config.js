@@ -166,6 +166,9 @@ function buildPostLoginPayload(appConfig) {
     publicSharedLinksEnabled,
     openidReuseTokens,
     ragEnabled: Boolean(process.env.RAG_API_URL?.trim()),
+    customLogo: process.env.CUSTOM_LOGO_PATH || '/assets/logo.svg',
+    customWelcomeMessage: process.env.CUSTOM_WELCOME_BACK || 'com_auth_welcome_back',
+    customCss: process.env.CUSTOM_CSS || '/src/style.css',
     /** Read inline (not module-level) for per-request evaluation and test isolation */
     allowAccountDeletion:
       process.env.ALLOW_ACCOUNT_DELETION === undefined ||
