@@ -4,7 +4,8 @@
 FROM docker.io/library/node:24.22.3-alpine AS node
 
 RUN apk upgrade --no-cache
-RUN apk add --no-cache bash jemalloc
+# Install jemalloc AND curl (curl is needed for the eg-startup.sh script)
+RUN apk add --no-cache bash jemalloc curl
 RUN apk add --no-cache python3 py3-pip uv
 
 # Set environment variable to use jemalloc

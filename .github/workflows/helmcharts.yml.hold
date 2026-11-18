@@ -1,16 +1,10 @@
 name: Build Helm Charts on Tag
 
 # The workflow is triggered when a tag is pushed
-on:
-  push:
-    tags:
-      - "chart-*"
-  workflow_dispatch:
-    inputs:
-      chart_tag:
-        description: "Existing chart tag to release, for example chart-2.0.5"
-        required: true
-        type: string
+#on:
+#  push:
+#    tags:
+#      - "chart-*"
 
 jobs:
   release:
